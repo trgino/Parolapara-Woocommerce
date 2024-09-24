@@ -39,7 +39,7 @@ class parolapara
         return false;
     }
 
-    public function getInstallment($par)
+    public function getInstallment($par, $order)
     {
 
         $token = $this->getToken();
@@ -76,7 +76,7 @@ class parolapara
                 $html .= 'tag="' . $total . '"';
                 $html .= '<label class="form-check-label" for="tno' . $taksitler->installments_number . '"><strong>' . $text_value . '</strong></label></div></td>';
 
-                $html .= '<td class="px-3 py-2" id="instalmentTd' . $key . '"><label for="tno1">' . $total . ' ₺ </label></td>';
+                $html .= '<td class="px-3 py-2" id="instalmentTd' . $key . '"><label for="tno1">' . $total . ' ' . $order->get_currency() . ' </label></td>';
                 $html .= '<td class="px-3 py-2 text-primary"><strong></strong></td></tr>';
                 $html .= '<input type="hidden" name="tsx' . $taksitler->installments_number . '" value="' . $taksitler->hash_key . '">';
             }
@@ -121,7 +121,7 @@ class parolapara
 
         $items = json_encode($items);
 
-        $okUrl = get_site_url() . "/wc-api/parolapara_complete_payment";
+        $okUrl = get_site_url(get_current_blog_id(), '/wc-api/parolapara_complete_payment');
         $failUrl = $order->get_checkout_payment_url(true);
 
         $amount = floatval($this->fixNumberFormat($_REQUEST['odenecek_tutar']));

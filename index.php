@@ -3,7 +3,7 @@
 Plugin Name: Parolapara
 Plugin URI:
 Description: Parolapara ile ödemeye almaya başlayın
-Version: 1.0.1
+Version: 1.0.2
 Author: Ravensoft
 Author URI:
 License: GNU
@@ -20,7 +20,9 @@ function wpdocs_load_parolapara()
     load_plugin_textdomain('parolapara', false, dirname(plugin_basename(__FILE__)) . '/languages/');
 }
 
-define("plugin_url", plugin_dir_url(__FILE__));
+define("PAROLOPARA_URL", plugin_dir_url(__FILE__));
+define("PAROLOPARA_DATA", get_plugin_data( __FILE__ ));
+
 add_filter('woocommerce_payment_gateways', 'parolapara_add_gateway_class');
 function parolapara_add_gateway_class($gateways)
 {
@@ -55,7 +57,7 @@ function parolapara_init_gateway_class()
             $this->init_form_fields();
             $this->init_settings();
             $this->title = $this->get_option('title');
-            $this->description = "" . $this->get_option('description') . "";
+            $this->description = $this->get_option('description');
             $this->enabled = $this->get_option('enabled');
             add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
             add_action('woocommerce_receipt_parolapara', array($this, 'parolapara_payment_redirect'));
@@ -101,7 +103,6 @@ function parolapara_init_gateway_class()
                     'type' => 'select',
                     'options' => array(
                         '3d' => esc_html__('3d Ödeme', 'parolapara'),
-//                                '2d' => esc_html__('2d Ödeme', 'parolapara')
                     ),
                 ),
                 'form_type' => array(
@@ -109,7 +110,6 @@ function parolapara_init_gateway_class()
                     'type' => 'select',
                     'options' => array(
                         'payment-form-api' => esc_html__('Ödeme Formu', 'parolapara'),
-//                                'payment-form-iframe' => esc_html__('İframe Ödeme', 'parolapara')
                     ),
                 ),
                 'merchant_id' => array(
@@ -159,16 +159,39 @@ function parolapara_init_gateway_class()
         public function getInstallment()
         {
 
+            if (!isset($_REQUEST['order_id'])) {
+                return "<h5>Taksit Bilgileri Bulunamadı.</h5>";
+            }
+            if (isset($_REQUEST['order_id']) && !(intval($_REQUEST['order_id']) > 0)) {
+                return "<h5>Taksit Bilgileri Bulunamadı.</h5>";
+            }
+
             $order = wc_get_order($_REQUEST['order_id']);
+            if (!$order) {
+                return "<h5>Sipariş Bulunamadı.</h5>";
+            }
+            
+            if (!isset($_REQUEST['cardnumber'])) {
+                return "<h5>Kart no eksik.</h5>";
+            }
+
+            $cardnumber = substr(preg_replace('/\s+/', '', $_REQUEST['cardnumber']), 0, 6);
+
+            if (strlen($cardnumber) < 6) {
+                return "<h5>Kart no eksik veya hatalı.</h5>";
+            }
+
             $parolapara = new parolapara();
             $par = [
                 'merchant_key' => $this->parolapara_settings['merchant_key'],
                 'amount' => $order->get_total(),
-                'credit_card' => trim($_REQUEST['cardnumber']),
-                'currency_code' => "TRY",
+                'credit_card' => $cardnumber,
+                'currency_code' => 'TRY',
+                'is_recurring' => 0,
+                'is_2d' => 0,
             ];
 
-            echo $parolapara->getInstallment($par);
+            echo $parolapara->getInstallment($par, $order);
 
             exit;
         }
@@ -176,27 +199,9 @@ function parolapara_init_gateway_class()
         public function startPayment()
         {
 
-            if (isset($_REQUEST['d3Yonlendir'])) {
-
-                $order_id = $_REQUEST['d3Yonlendir'];
+            if (isset($_REQUEST['d3Yonlendir']) && intval($_REQUEST['d3Yonlendir']) > 0) {
                 $parolapara = new parolapara();
-
-                if ($this->parolapara_settings['3d_secure'] == "2d") {
-
-                    /*
-                     * 2d işlemler için buradan işlem yapılır
-                     */
-
-                    $parolapara->start2d($order_id);
-
-                } else {
-
-                    /*
-                     * İşlem 3d ise bu kısımdan işlem yapar
-                     */
-
-                    $parolapara->start3d($order_id);
-                }
+                $parolapara->start3d(intval($_REQUEST['d3Yonlendir']));
             }
             exit;
         }
@@ -206,9 +211,10 @@ function parolapara_init_gateway_class()
          */
         public function completePayment()
         {
-            $order_id = $_REQUEST['invoice_id'];
-            $parolapara = new parolapara();
-            $parolapara->completePayment($order_id);
+            if (isset($_REQUEST['invoice_id']) && intval($_REQUEST['invoice_id']) > 0) {
+                $parolapara = new parolapara();
+                $parolapara->completePayment(intval($_REQUEST['invoice_id']));
+            }
             exit;
         }
 

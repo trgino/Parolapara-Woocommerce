@@ -3,42 +3,49 @@ if (!defined('ABSPATH')) {
     exit;
 }
 ?>
-<link rel="stylesheet" href="<?php echo plugin_url ?>/assets/css/style.css">
-<link rel="stylesheet" href="<?php echo plugin_url ?>/assets/css/bootstrap-icons.css">
-<main class="container form-signin mt-0 pt-0 shadow p-4 p-md-3">
+<link rel="stylesheet" href="<?php echo PAROLOPARA_URL; ?>/assets/css/style.css?_=<?php echo PAROLOPARA_DATA['Version']; ?>">
+<link rel="stylesheet" href="<?php echo PAROLOPARA_URL; ?>/assets/css/bootstrap-icons.css?_=<?php echo PAROLOPARA_DATA['Version']; ?>">
+<main class="container mt-0 pt-0 shadow p-4 p-md-3">
     <style>
         .input {
             width: auto !important;
         }
     </style>
     <div id="index">
-        <form action="<?php echo get_site_url() ?>/wc-api/parolapara_start_payment" id="perForm" method="post">
+        <form action="<?php echo get_site_url(get_current_blog_id(), '/wc-api/parolapara_start_payment'); ?>" id="perForm" method="post">
             <input type="hidden" name="d3Yonlendir" value="<?php echo $order_id ?>">
             <input type="hidden" name="secilen_taksit" value="1">
             <input type="hidden" name="odenecek_tutar" value="<?php echo $order->get_total() ?>">
-            <div class="input-group mb-3">
+            <div class="row">
+                <div class="col-12">
+                    <div class="input-group mb-3">
 
-            <span class="input-group-text text-primary" style="min-height: 50px !important;" id="basic-addon12">
-                <i class="bi bi-person fs-4"></i>
-            </span>
+                        <span class="input-group-text text-primary" style="min-height: 50px !important;" id="basic-addon12">
+                            <i class="bi bi-person fs-4"></i>
+                        </span>
 
-                <input type="text" class="form-control input" placeholder="Kart Üzerindeki Ad Soyad" id="name"
-                       name="cardHolderName"
-                       autocomplete="cc-name" aria-describedby="basic-addon12">
+                        <input type="text" class="form-control input" placeholder="Kart Üzerindeki Ad Soyad" id="name"
+                            name="cardHolderName"
+                            autocomplete="cc-name" aria-describedby="basic-addon12">
 
+                    </div>
+                    <span id="validationwarningname" class="text-danger input-group"></span>
+                </div>
+                <div class="col-12">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text text-primary" style="min-height: 50px !important;" id="basic-addon1">
+                            <i class="bi bi-credit-card-2-front fs-4"></i>
+                        </span>
+                        <input type="text" inputmode="numeric" class="form-control input" keyup="formatCard(this)"
+                            placeholder="Kart Numarası" aria-label="number" id="number" name="cardNumber"
+                            autocomplete="cc-number" pattern="[0-9\s]{4} [0-9\s]{4} [0-9\s]{4} [0-9\s]{4}" maxlength="19"
+                            aria-describedby="basic-addon1">
+                    </div>
+                    <span id="validationwarningcard" class="text-danger input-group"></span>
+                </div>
             </div>
-            <span id="validationwarningname" class="text-danger input-group"></span>
-            <div class="input-group mb-3">
-            <span class="input-group-text text-primary" style="min-height: 50px !important;" id="basic-addon1">
-                <i class="bi bi-credit-card-2-front fs-4"></i>
-            </span>
-                <input type="text" inputmode="numeric" class="form-control input" keyup="formatCard(this)"
-                       placeholder="Kart Numarası" aria-label="number" id="number" name="cardNumber"
-                       autocomplete="cc-number" pattern="[0-9\s]{4} [0-9\s]{4} [0-9\s]{4} [0-9\s]{4}" maxlength="19"
-                       aria-describedby="basic-addon1">
-            </div>
-            <span id="validationwarningcard" class="text-danger input-group"></span>
-            <div class="input-group g-1">
+            
+            <div class="row">
                 <div class="col-8">
                     <div class="input-group mb-3">
                     <span class="input-group-text text-primary" style="min-height: 50px !important;" id="basic-addon13">
@@ -66,31 +73,37 @@ if (!defined('ABSPATH')) {
                                 name="cvv" autocomplete="cc-csc" aria-label="cvv" maxlength="4"
                                 aria-describedby="basic-addon14" spellcheck="false" mask="000">
                     </div>
-                </div>
-                <span id="validationwarningcvv" class="text-danger input-group"></span>
-                <div class="row g-2 mb-2 text-center" id="cardProgram">
-                    <div class="col-4">
-                        <img src="<?php echo plugin_url ?>/images/mastercard.png" class="img-fluid"
-                             style="max-height:40px;">
-                    </div>
-                    <div class="col-4">
-                        <img src="<?php echo plugin_url ?>/images/visa-yeni2.png" class="img-fluid"
-                             style="max-height:40px;">
-                    </div>
-                    <div class="col-4">
-                        <img src="<?php echo plugin_url ?>/images/troy.png" class="img-fluid" style="max-height:40px;">
-                    </div>
+                    <span id="validationwarningcvv" class="text-danger input-group"></span>    
                 </div>
             </div>
-            <p id="taksitp">Taksit seçenekleri geçerli kart bilgilerini girdikten sonra görüntülenecektir.</p>
-            <div class="row" id="taksit">
+            
+            <div class="row g-2 mb-2 text-center" id="cardProgram">
+                <div class="col-4">
+                    <img src="<?php echo PAROLOPARA_URL; ?>/images/mastercard.png" class="img-fluid"
+                            style="max-height:40px;">
+                </div>
+                <div class="col-4">
+                    <img src="<?php echo PAROLOPARA_URL; ?>/images/visa-yeni2.png" class="img-fluid"
+                            style="max-height:40px;">
+                </div>
+                <div class="col-4">
+                    <img src="<?php echo PAROLOPARA_URL; ?>/images/troy.png" class="img-fluid" style="max-height:40px;">
+                </div>
             </div>
-            <div id="indexbutton">
-                <button class="w-100 btn btn-lg btn-primary" type="button" onclick="validateForm();"
-                        name="paybuttontext" id="paybuttontext"
-                        title="Taksit Seçenekleri"> <?php echo $order->get_total() ?> ₺ Öde
-                </button>
+
+            <div class="row" id="taksit"></div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div id="indexbutton">
+                        <button class="w-100 btn btn-lg btn-primary" type="button" onclick="validateForm();"
+                                name="paybuttontext" id="paybuttontext"
+                                title="Taksit Seçenekleri"> <?php echo $order->get_total() ?> <?php echo $order->get_currency(); ?> Öde
+                        </button>
+                    </div>
+                </div>
             </div>
+            
         </form>
     </div>
 </main>
@@ -580,7 +593,7 @@ if (!defined('ABSPATH')) {
                     }
                 }
                 if (!errorExist) {
-                    $("#taksit").load("<?php echo get_site_url() ?>/wc-api/parolapara_installment", {
+                    $("#taksit").load("<?php echo get_site_url(get_current_blog_id(), '/wc-api/parolapara_installment'); ?>", {
                         cardnumber: $("#number").val(),
                         order_id: '<?php echo $order_id ?>',
                     }, function () {
