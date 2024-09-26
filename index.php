@@ -3,7 +3,7 @@
 Plugin Name: Parolapara
 Plugin URI:
 Description: Parolapara ile ödemeye almaya başlayın
-Version: 1.0.2
+Version: 1.0.3
 Author: Ravensoft
 Author URI:
 License: GNU

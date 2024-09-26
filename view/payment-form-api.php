@@ -497,23 +497,19 @@ if (!defined('ABSPATH')) {
         }
     }
 
-    function updateSubmitButtonAmount(myAmount) {
-        if (myAmount != undefined) {
-            $("#paybuttontext").prop("disabled", false);
-            $("#registerbtn").prop("disabled", false);
-            $("#paybuttontext").text(myAmount + " ₺ Öde");
-            $('[name="odenecek_tutar"]').val(myAmount);
-        }
-        updateTaksit();
-    }
-
-    function updateTaksit() {
-        var sectigimTaksit = $('input[name="tno"]:checked').attr("data-sayi");
-        $('[name="secilen_taksit"]').val(sectigimTaksit);
-    }
 </script>
 <script>
     $(document).ready(function () {
+        $('#taksit').on('click', '.taksit-radio', function(){
+            $("#paybuttontext").prop("disabled", false);
+
+            $('input[type="radio"]', this).prop('checked', true);
+            
+            $("#paybuttontext").text($('input[type="radio"]', this).data('total')+' '+$('input[type="radio"]', this).data('currency')+' Öde');
+            $('input[name="odenecek_tutar"]').val($('input[type="radio"]', this).data('total'));
+   
+            $('input[name="secilen_taksit"]').val($('input[type="radio"]', this).data('no'));
+        });
         if (document.getElementById('coverScreen') != undefined)
             document.getElementById('coverScreen').hidden = true;
         $('#cvv').keydown(function (event) {
@@ -606,9 +602,6 @@ if (!defined('ABSPATH')) {
                         $("#taksitp").html("Taksit Seçenekleri");
                         if ($("#instalmentTd0").html() != undefined) {
                             $("#paybuttontext").text($("#instalmentTd0")[0].children[0].innerHTML + " Öde");
-                            if ($("#registerbtn") != undefined) {
-                                $("#registerbtn").prop("disabled", false);
-                            }
                         } else {
                             if ($("#foreignPaymenAllowShow").html() == undefined) {
                                 if ('NONE' == PAYMENT_ROUTER_PAY_BY_LINK) {
@@ -692,11 +685,8 @@ if (!defined('ABSPATH')) {
         $("#ForeignPaymenAllowData").show();
         $("#paybuttontext").prop("disabled", false);
         $("#paybuttontext").text($("#CURRENCY_CODE_ALPHA").val() + " " + $("#SALE_AMOUNT").val() + " Öde");
-        if ($("#cpaybuttontext") != undefined) {
+        if ($("#cpaybuttontext").length) {
             $("#cpaybuttontext").prop("disabled", false);
-        }
-        if ($("#registerbtn") != undefined) {
-            $("#registerbtn").prop("disabled", false);
         }
     }
 </script>

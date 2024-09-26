@@ -47,43 +47,32 @@ class parolapara
 
         if ($installament->status_code == 100) {
 
-            $html = '<div class="col wid100" id="tlist">';
-            $html .= '<table class="table border rounded bg-white">';
-            $html .= '<tbody>';
+            $html = ['<div class="col wid100" id="tlist">'];
+            $html[] = '<div class="col wid100" id="tlist">';
+            $html[] = '<table class="table border rounded bg-white">';
+            $html[] = '<tbody>';
 
             foreach ($installament->data as $key => $taksitler) {
                 if ($taksitler->installments_number == 1) {
                     $text_value = "Tek Çekim";
                 } else {
-                    $text_value = $taksitler->installments_number . " x " . $taksitler->payable_amount;
-                }
-                $total = $taksitler->amount_to_be_paid;
-                if (empty(explode(".", $total)[1])) {
-                    $total = $total . ".00";
-                } else {
-                    if (strlen(explode(".", $total)[1]) == 1) {
-                        $total = $total . "0";
-                    }
+                    $text_value = $taksitler->installments_number . " x " . $this->fixNumberFormat($taksitler->amount_to_be_paid);
                 }
 
-                $html .= '<tr><td class="px-3 py-2"><div class="form-check">';
-                $html .= '<input type="radio" data-sayi="' . $taksitler->installments_number . '" id="tno' . $taksitler->installments_number . '" ';
-                $html .= 'onclick="updateSubmitButtonAmount(\'' . $total . '\')" class="form-check-input p-1" name="tno"';
-                if ($taksitler->installments_number == 1) {
-                    $html .= 'checked';
-                }
-                $html .= 'value="' . $taksitler->installments_number . '"';
-                $html .= 'tag="' . $total . '"';
-                $html .= '<label class="form-check-label" for="tno' . $taksitler->installments_number . '"><strong>' . $text_value . '</strong></label></div></td>';
+                $total = $this->fixNumberFormat($taksitler->payable_amount);
 
-                $html .= '<td class="px-3 py-2" id="instalmentTd' . $key . '"><label for="tno1">' . $total . ' ' . $order->get_currency() . ' </label></td>';
-                $html .= '<td class="px-3 py-2 text-primary"><strong></strong></td></tr>';
-                $html .= '<input type="hidden" name="tsx' . $taksitler->installments_number . '" value="' . $taksitler->hash_key . '">';
+                $html[] = '<tr><td class="px-3 py-2"><div class="form-check taksit-radio">';
+                $html[] = '<input type="radio" data-sayi="' . $taksitler->installments_number . '" data-total="' . $total . '" data-currency="' . $order->get_currency() . '" data-no="' . $taksitler->installments_number . '" id="tno' . $taksitler->installments_number . '" class="form-check-input p-1" name="tno" ' . ($taksitler->installments_number == 1 ? 'checked' : '') . ' value="' . $taksitler->installments_number . '" tag="' . $total . '">';
+                $html[] = '<label class="form-check-label" for="tno' . $taksitler->installments_number . '"><strong>' . $text_value . '</strong></label></div></td>';
+
+                $html[] = '<td class="px-3 py-2" id="instalmentTd' . $key . '"><label for="tno1">' . $total . ' ' . $order->get_currency() . ' </label></td>';
+                $html[] = '<td class="px-3 py-2 text-primary"></td></tr>';
+                $html[] = '<input type="hidden" name="tsx' . $taksitler->installments_number . '" value="' . $taksitler->hash_key . '">';
             }
 
-            $html .= '</tbody></table></div>';
+            $html[] = '</tbody></table></div>';
 
-            return $html;
+            return implode('', $html);
         } else {
             return "<h5>Bu karta taksit yapılmamaktadır.</h5>";
         }
@@ -105,10 +94,10 @@ class parolapara
 
             $product = $item->get_product();
             $items[] = [
-                'price' => str_replace(".00", "", $product->get_price()),
+                'price' => floatval($this->fixNumberFormat($product->get_price())),
                 'name' => $item->get_name(),
                 'quantity' => $item->get_quantity(),
-                'description' => $item->get_name() . " ürünü",
+                'description' => $item->get_name(),
             ];
         }
 
@@ -412,7 +401,7 @@ foreach ($vars as $key => $value) {
                 $salt = isset($components[1]) ? $components[1] : "";
                 $salt = hash('sha256', $password . $salt);
                 $encryptedMsg = isset($components[2]) ? $components[2] : "";
-                $decryptedMsg = openssl_decrypt($encryptedMsg, 'aes-256-cbc', $salt, null, $iv);
+                $decryptedMsg = openssl_decrypt($encryptedMsg, 'aes-256-cbc', $salt, 0, $iv);
                 if (strpos($decryptedMsg, '|') !== false) {
                     $array = explode('|', $decryptedMsg);
                     $status = isset($array[0]) ? $array[0] : 0;
