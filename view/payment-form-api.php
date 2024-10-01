@@ -44,7 +44,7 @@ if (!defined('ABSPATH')) {
                     <span id="validationwarningcard" class="text-danger input-group"></span>
                 </div>
             </div>
-            
+
             <div class="row">
                 <div class="col-8">
                     <div class="input-group mb-3">
@@ -73,10 +73,10 @@ if (!defined('ABSPATH')) {
                                 name="cvv" autocomplete="cc-csc" aria-label="cvv" maxlength="4"
                                 aria-describedby="basic-addon14" spellcheck="false" mask="000">
                     </div>
-                    <span id="validationwarningcvv" class="text-danger input-group"></span>    
+                    <span id="validationwarningcvv" class="text-danger input-group"></span>
                 </div>
             </div>
-            
+
             <div class="row g-2 mb-2 text-center" id="cardProgram">
                 <div class="col-4">
                     <img src="<?php echo PAROLOPARA_URL; ?>/images/mastercard.png" class="img-fluid"
@@ -91,7 +91,7 @@ if (!defined('ABSPATH')) {
                 </div>
             </div>
 
-            <div class="row" id="taksit"></div>
+            <div class="row" id="taksit"><table class='table'><tr class='table-primary'><th class='table-primary'>Taksit seçenekleri, geçerli kart bilgileri girildikten sonra görüntülenecektir</th></tr></table></div>
 
             <div class="row">
                 <div class="col-12">
@@ -103,7 +103,7 @@ if (!defined('ABSPATH')) {
                     </div>
                 </div>
             </div>
-            
+
         </form>
     </div>
 </main>
@@ -504,10 +504,10 @@ if (!defined('ABSPATH')) {
             $("#paybuttontext").prop("disabled", false);
 
             $('input[type="radio"]', this).prop('checked', true);
-            
+
             $("#paybuttontext").text($('input[type="radio"]', this).data('total')+' '+$('input[type="radio"]', this).data('currency')+' Öde');
             $('input[name="odenecek_tutar"]').val($('input[type="radio"]', this).data('total'));
-   
+
             $('input[name="secilen_taksit"]').val($('input[type="radio"]', this).data('no'));
         });
         if (document.getElementById('coverScreen') != undefined)

@@ -3,7 +3,7 @@
 Plugin Name: Parolapara
 Plugin URI:
 Description: Parolapara ile ödemeye almaya başlayın
-Version: 1.0.3
+Version: 1.0.4
 Author: Ravensoft
 Author URI:
 License: GNU
@@ -220,3 +220,45 @@ function parolapara_init_gateway_class()
 
     }
 }
+
+function parolaparaPaySqlTables() 
+{
+	global $wpdb;
+
+    if(get_option('parolaparaversion') == PAROLOPARA_DATA['Version']){
+        return;
+    }
+
+	$tableNames = [
+		$wpdb->prefix . 'parolaparalog',
+	];
+	
+	$charsetCollate = $wpdb->get_charset_collate();
+
+	$createTableQuery = [
+		"CREATE TABLE $tableNames[0] (
+            `id` bigint(20) NOT NULL AUTO_INCREMENT,
+            `orderid` bigint(20) NOT NULL,
+            `logloc` varchar(255) NOT NULL,
+            `logdata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`logdata`)),
+            `logpost` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`logpost`)),
+            `logget` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`logget`)),
+            `logtime` int(11) NOT NULL,
+			PRIMARY KEY (`id`)
+		) $charsetCollate;",
+	];
+
+	if( !function_exists( 'dbDelta' ))
+	{
+		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+	}
+
+	foreach($createTableQuery as $perQuery )
+	{  
+		dbDelta( $perQuery ); 
+	} 
+
+	update_option( 'parolaparaversion', PAROLOPARA_DATA['Version'] );
+}
+
+register_activation_hook(__FILE__, 'parolaparaPaySqlTables');

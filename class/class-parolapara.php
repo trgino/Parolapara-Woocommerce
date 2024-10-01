@@ -44,6 +44,7 @@ class parolapara
 
         $token = $this->getToken();
         $installament = json_decode($this->curl($par, $this->installment_url, $token));
+        $this->logparolapara($order->get_id(), __METHOD__, $installament);
 
         if ($installament->status_code == 100) {
 
@@ -79,11 +80,6 @@ class parolapara
 
     }
 
-    public function start2d($order_id)
-    {
-
-    }
-
     public function start3d($order_id)
     {
 
@@ -103,9 +99,9 @@ class parolapara
 
         $items[] = [
             'price' => $order->get_shipping_total(),
-            'name' => "Kargo",
+            'name' => 'Kargo',
             'quantity' => 1,
-            'description' => "Gönderi ücreti",
+            'description' => 'Gönderi ücreti',
         ];
 
         $items = json_encode($items);
@@ -119,14 +115,14 @@ class parolapara
 
         $vars = [
             'cc_holder_name' => $_REQUEST['cardHolderName'],
-            'cc_no' => str_replace(" ", "", $_REQUEST['cardNumber']),
+            'cc_no' => preg_replace('/\s+/', '', $_REQUEST['cardNumber']),
             'expiry_month' => $_REQUEST['ay'],
             'expiry_year' => $_REQUEST['yil'],
             'cvv' => $_REQUEST['cvv'],
-            'currency_code' => "TRY",
+            'currency_code' => 'TRY',
             'installments_number' => intval($_REQUEST['secilen_taksit']),
             'invoice_id' => $order_id,
-            'invoice_description' => $order_id . " Nolu Sipariş Ödemesi",
+            'invoice_description' => $order_id . ' Nolu Sipariş Ödemesi',
             'name' => $order->get_billing_first_name(),
             'surname' => $order->get_billing_last_name(),
             'total' => $amount,
@@ -140,16 +136,18 @@ class parolapara
             'bill_city' => WC()->countries->get_states()['TR'][$order->get_billing_state()],
             'bill_postcode' => $order->get_billing_postcode(),
             'bill_state' => $order->get_billing_city(),
-            'bill_country' => "Türkiye",
+            'bill_country' => 'Türkiye',
             'bill_email' => $order->get_billing_email(),
             'bill_phone' => $order->get_billing_phone(),
             'ip' => $this->getIp(),
-            'transaction_type' => "Auth",
+            'transaction_type' => 'Auth',
             'sale_webhook_key' => $order_id,
-            'payment_completed_by' => "app",
-            'response_method' => "POST",
+            'payment_completed_by' => 'app',
+            'response_method' => 'POST',
+            'discount' => $order->get_total_discount(false),
         ];
 
+        $this->logparolapara($order_id, __METHOD__, $vars);
         ?>
 
             <style>
@@ -299,6 +297,8 @@ foreach ($vars as $key => $value) {
         $order = wc_get_order($order_id);
         $sonuc = $this->validateHashKey($_REQUEST['hash_key']);
 
+        $this->logparolapara($order->get_id(), __METHOD__, $sonuc);
+
         if ($sonuc['0'] == $_REQUEST['payment_status'] && $sonuc['2'] == $_REQUEST['invoice_id'] && $sonuc['3'] == $_REQUEST['order_id']) {
             if ($_REQUEST['transaction_type'] == "Auth") {
 
@@ -337,12 +337,12 @@ foreach ($vars as $key => $value) {
     public function curl($payload, $url, $token = "")
     {
         $header = [
-            "Accept: application/json",
-            "Content-Type: application/json",
+            'Accept: application/json',
+            'Content-Type: application/json',
         ];
 
         if (!empty($token)) {
-            $header[] = "Authorization: Bearer $token";
+            $header[] = 'Authorization: Bearer ' . $token;
         }
 
         $ch = curl_init();
@@ -434,6 +434,20 @@ foreach ($vars as $key => $value) {
         $price = number_format($price, ($decimal + 1), '.', '');
         $price = substr($price, 0, -1);
         return $price;
+    }
+
+    public function logparolapara($orderid, $method, $data)
+    {
+        global $wpdb;
+        $wpdb->insert($wpdb->prefix . 'parolaparalog', [
+            'orderid' => $orderid,
+            'logloc' => $method,
+            'logdata' => json_encode($data),
+            'logpost' => !empty($_POST) ? json_encode($_POST) : json_encode([]),
+            'logget' => !empty($_GET) ? json_encode($_GET) : json_encode([]),
+            'logtime' => time(),
+        ]);
+
     }
 
 }
