@@ -3,8 +3,7 @@
 Plugin Name: Parolapara
 Plugin URI:
 Description: Parolapara ile ödemeye almaya başlayın
-Version: 1.0.4
-Author: Ravensoft
+Version: 1.0.3
 Author URI:
 License: GNU
 Text Domain: parolapara
@@ -103,6 +102,25 @@ function parolapara_init_gateway_class()
                     'type' => 'select',
                     'options' => array(
                         '3d' => esc_html__('3d Ödeme', 'parolapara'),
+                    ),
+                ),
+                
+                'installmentlimit' => array(
+                    'title' => esc_html__('Maksimum Taksit', 'parolapara'),
+                    'type' => 'select',
+                    'options' => array(
+                        '1' => esc_html__('Tek Çekim', 'parolapara'),
+                        '2' => esc_html__('2 Taksit', 'parolapara'),
+                        '3' => esc_html__('3 Taksit', 'parolapara'),
+                        '4' => esc_html__('4 Taksit', 'parolapara'),
+                        '5' => esc_html__('5 Taksit', 'parolapara'),
+                        '6' => esc_html__('6 Taksit', 'parolapara'),
+                        '7' => esc_html__('7 Taksit', 'parolapara'),
+                        '8' => esc_html__('8 Taksit', 'parolapara'),
+                        '9' => esc_html__('9 Taksit', 'parolapara'),
+                        '10' => esc_html__('10 Taksit', 'parolapara'),
+                        '11' => esc_html__('11 Taksit', 'parolapara'),
+                        '12' => esc_html__('12 Taksit', 'parolapara'),
                     ),
                 ),
                 'form_type' => array(
@@ -220,45 +238,3 @@ function parolapara_init_gateway_class()
 
     }
 }
-
-function parolaparaPaySqlTables() 
-{
-	global $wpdb;
-
-    if(get_option('parolaparaversion') == PAROLOPARA_DATA['Version']){
-        return;
-    }
-
-	$tableNames = [
-		$wpdb->prefix . 'parolaparalog',
-	];
-	
-	$charsetCollate = $wpdb->get_charset_collate();
-
-	$createTableQuery = [
-		"CREATE TABLE $tableNames[0] (
-            `id` bigint(20) NOT NULL AUTO_INCREMENT,
-            `orderid` bigint(20) NOT NULL,
-            `logloc` varchar(255) NOT NULL,
-            `logdata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`logdata`)),
-            `logpost` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`logpost`)),
-            `logget` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`logget`)),
-            `logtime` int(11) NOT NULL,
-			PRIMARY KEY (`id`)
-		) $charsetCollate;",
-	];
-
-	if( !function_exists( 'dbDelta' ))
-	{
-		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-	}
-
-	foreach($createTableQuery as $perQuery )
-	{  
-		dbDelta( $perQuery ); 
-	} 
-
-	update_option( 'parolaparaversion', PAROLOPARA_DATA['Version'] );
-}
-
-register_activation_hook(__FILE__, 'parolaparaPaySqlTables');

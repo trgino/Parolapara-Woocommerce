@@ -18,60 +18,63 @@ if (!defined('ABSPATH')) {
             <input type="hidden" name="odenecek_tutar" value="<?php echo $order->get_total() ?>">
             <div class="row">
                 <div class="col-12">
-                    <div class="input-group mb-3">
+                    <div class="mb-3">
 
-                        <span class="input-group-text text-primary" style="min-height: 50px !important;" id="basic-addon12">
-                            <i class="bi bi-person fs-4"></i>
-                        </span>
+                        <div class="text-primary" id="basic-addon12">
+                            Kart Üzerindeki Ad Soyad
+                        </div>
 
-                        <input type="text" class="form-control input" placeholder="Kart Üzerindeki Ad Soyad" id="name"
+                        <input type="text" class="form-control" placeholder="Kart Üzerindeki Ad Soyad" id="name"
                             name="cardHolderName"
-                            autocomplete="cc-name" aria-describedby="basic-addon12">
+                            autocomplete="cc-name" aria-describedby="basic-addon12" required>
 
                     </div>
                     <span id="validationwarningname" class="text-danger input-group"></span>
                 </div>
                 <div class="col-12">
-                    <div class="input-group mb-3">
-                        <span class="input-group-text text-primary" style="min-height: 50px !important;" id="basic-addon1">
-                            <i class="bi bi-credit-card-2-front fs-4"></i>
-                        </span>
-                        <input type="text" inputmode="numeric" class="form-control input" keyup="formatCard(this)"
+                    <div class="mb-3">
+                        <div class="text-primary" id="basic-addon1">
+                            Kart Numarası
+                        </div>
+                        <input type="text" inputmode="numeric" class="form-control" keyup="formatCard(this)"
                             placeholder="Kart Numarası" aria-label="number" id="number" name="cardNumber"
                             autocomplete="cc-number" pattern="[0-9\s]{4} [0-9\s]{4} [0-9\s]{4} [0-9\s]{4}" maxlength="19"
-                            aria-describedby="basic-addon1">
+                            aria-describedby="basic-addon1" required>
                     </div>
                     <span id="validationwarningcard" class="text-danger input-group"></span>
                 </div>
             </div>
 
             <div class="row">
-                <div class="col-8">
-                    <div class="input-group mb-3">
-                    <span class="input-group-text text-primary" style="min-height: 50px !important;" id="basic-addon13">
-                        <i class="bi bi-calendar3 fs-4"></i>
-                    </span>
-                        <input type="text" inputmode="numeric" class="form-control input"
-                               style="max-width: 60px !important;"
-                               maxlength="2" autocomplete="cc-exp-month" placeholder="Ay" name="ay" id="ay"
-                               aria-label="Ay">
-                        <span class="input-group-text">/</span>
-                        <input type="text" inputmode="numeric" class="form-control input" placeholder="Yıl"
-                               maxlength="4"
-                               aria-label="Yıl" autocomplete="cc-exp-year" name="yil" id="yil" aria-invalid="false"
-                               style="max-width: 80px !important;">
+                <div class="col-12">
+                    <div class="mb-3">
+                        <div class="text-primary" id="basic-addon13">
+                            Ay
+                        </div>
+                        <input type="text" inputmode="numeric" class="form-control" maxlength="2" autocomplete="cc-exp-month" placeholder="Ay" name="ay" id="ay"
+                               aria-label="Ay" required>
                     </div>
                 </div>
-                <div class="col-4">
-                    <div class="input-group mb-3" style="flex-wrap: nowrap">
-                        <span class="input-group-text text-primary" style="min-height: 50px !important;" id="basic-addon14">
-                            <i class="bi bi-credit-card-2-back fs-4"></i>
-                        </span>
+                <div class="col-12">
+                    <div class=" mb-3">
+                        <div class="text-primary" id="basic-addon13">
+                            Yıl
+                        </div>
+                        <input type="text" inputmode="numeric" class="form-control" placeholder="Yıl"
+                               maxlength="4"
+                               aria-label="Yıl" autocomplete="cc-exp-year" name="yil" id="yil" aria-invalid="false" required>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="mb-3">
+                        <div class="text-primary" id="basic-addon14">
+                            CVC/CVV
+                        </div>
                         <input
                                 type="text"
                                 inputmode="numeric" class="form-control" placeholder="CVV" id="cvv"
                                 name="cvv" autocomplete="cc-csc" aria-label="cvv" maxlength="4"
-                                aria-describedby="basic-addon14" spellcheck="false" mask="000">
+                                aria-describedby="basic-addon14" spellcheck="false" mask="000" required>
                     </div>
                     <span id="validationwarningcvv" class="text-danger input-group"></span>
                 </div>

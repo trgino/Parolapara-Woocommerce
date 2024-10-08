@@ -12,6 +12,7 @@ class parolapara
     private $payment_url;
     private $complete_url;
     private $confirm_payment_url;
+    private $installmentlimit;
 
     public function __construct()
     {
@@ -22,6 +23,8 @@ class parolapara
         $this->payment_url = $this->parolapara_settings['api_type'] . "api/paySmart3D";
         $this->complete_url = $this->parolapara_settings['api_type'] . "payment/complete";
         $this->confirm_payment_url = $this->parolapara_settings['api_type'] . "api/confirmPayment ";
+        $this->installmentlimit = (isset($this->parolapara_settings['installmentlimit']) && intval($this->parolapara_settings['installmentlimit'])>0 && intval($this->parolapara_settings['installmentlimit'])<12) ? intval($this->parolapara_settings['installmentlimit']) : 12;
+
     }
 
     public function getToken()
@@ -54,6 +57,9 @@ class parolapara
             $html[] = '<tbody>';
 
             foreach ($installament->data as $key => $taksitler) {
+                if($taksitler->installments_number > $this->installmentlimit) {
+                    continue;
+                }
                 if ($taksitler->installments_number == 1) {
                     $text_value = "Tek Çekim";
                 } else {
@@ -97,6 +103,9 @@ class parolapara
             ];
         }
 
+        $secilentaksit = (isset($_REQUEST['secilen_taksit']) && intval($_REQUEST['secilen_taksit'])>0 && intval($_REQUEST['secilen_taksit'])<12) ? intval($_REQUEST['secilen_taksit']) : 1;
+        $secilentaksit = $secilentaksit > $this->installmentlimit ? $this->installmentlimit : $secilentaksit;
+
         $items[] = [
             'price' => $order->get_shipping_total(),
             'name' => 'Kargo',
@@ -111,16 +120,16 @@ class parolapara
 
         $amount = floatval($this->fixNumberFormat($_REQUEST['odenecek_tutar']));
 
-        $hash_key = $this->generateHash($amount, $_REQUEST['secilen_taksit'], "TRY", $this->parolapara_settings['merchant_key'], $order_id, $this->parolapara_settings['app_secret']);
+        $hash_key = $this->generateHash($amount, $secilentaksit, "TRY", $this->parolapara_settings['merchant_key'], $order_id, $this->parolapara_settings['app_secret']);
 
         $vars = [
             'cc_holder_name' => $_REQUEST['cardHolderName'],
-            'cc_no' => preg_replace('/\s+/', '', $_REQUEST['cardNumber']),
-            'expiry_month' => $_REQUEST['ay'],
-            'expiry_year' => $_REQUEST['yil'],
-            'cvv' => $_REQUEST['cvv'],
+            'cc_no' => $this->trimBlanks($_REQUEST['cardNumber']),
+            'expiry_month' => $this->trimBlanks($_REQUEST['ay']),
+            'expiry_year' => $this->trimBlanks($_REQUEST['yil']),
+            'cvv' => $this->trimBlanks($_REQUEST['cvv']),
             'currency_code' => 'TRY',
-            'installments_number' => intval($_REQUEST['secilen_taksit']),
+            'installments_number' => intval($secilentaksit),
             'invoice_id' => $order_id,
             'invoice_description' => $order_id . ' Nolu Sipariş Ödemesi',
             'name' => $order->get_billing_first_name(),
@@ -295,18 +304,21 @@ foreach ($vars as $key => $value) {
 
         global $woocommerce;
         $order = wc_get_order($order_id);
+
+        $this->logparolapara($order_id, 'completePayment1', ['order_id' => $order_id]);
+
         $sonuc = $this->validateHashKey($_REQUEST['hash_key']);
 
-        $this->logparolapara($order->get_id(), __METHOD__, $sonuc);
+        $this->logparolapara($order_id, 'completePayment2', $sonuc);
 
         if ($sonuc['0'] == $_REQUEST['payment_status'] && $sonuc['2'] == $_REQUEST['invoice_id'] && $sonuc['3'] == $_REQUEST['order_id']) {
             if ($_REQUEST['transaction_type'] == "Auth") {
 
-                $order->payment_complete();
+                /*$order->payment_complete();
                 $woocommerce->cart->empty_cart();
                 header("Location: " . $order->get_checkout_order_received_url());
 
-                exit;
+                exit;*/
 
                 $array = [
                     'merchant_key' => $this->parolapara_settings['merchant_key'],
@@ -317,6 +329,7 @@ foreach ($vars as $key => $value) {
                 ];
 
                 $sonuc = json_decode($this->curl($array, $this->complete_url, $this->getToken()));
+                $this->logparolapara($order_id, 'completePayment3', $sonuc);
 
                 if ($sonuc->status_code == 100) {
                     $order->payment_complete();
@@ -390,7 +403,7 @@ foreach ($vars as $key => $value) {
 
     public function validateHashKey($hashKey)
     {
-        $status = $currencyCode = "";
+        $status = $currencyCode = '';
         $total = $invoiceId = $orderId = 0;
         if (!empty($hashKey)) {
             $hashkey = str_replace('__', '/', $hashKey);
@@ -442,12 +455,17 @@ foreach ($vars as $key => $value) {
         $wpdb->insert($wpdb->prefix . 'parolaparalog', [
             'orderid' => $orderid,
             'logloc' => $method,
-            'logdata' => json_encode($data),
-            'logpost' => !empty($_POST) ? json_encode($_POST) : json_encode([]),
-            'logget' => !empty($_GET) ? json_encode($_GET) : json_encode([]),
+            'logdata' => serialize($data),
+            'logpost' => !empty($_POST) ? serialize($_POST) : '-',
+            'logget' => !empty($_GET) ? serialize($_GET) : '-',
             'logtime' => time(),
         ]);
 
+    }
+
+    private function trimBlanks($str)
+    {
+        return preg_replace('/\s+/', '', $str);
     }
 
 }
